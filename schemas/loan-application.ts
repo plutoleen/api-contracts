@@ -1,19 +1,18 @@
-import { LoanApplication, LoanData } from '../types/loan';
+import { LoanApplication, ApplicationStatus, LoanData } from '../types/loan';
 
 const createApplication = (userId: string) => {
   const newApplication: Omit<LoanApplication, 'id'> = {
     userId,
     name: `${new Date().toISOString()} - New Application`,
     status: 'draft',
-    currentStep: 1,
+    // currentStep: 1,
     createdAt: new Date(),
     updatedAt: new Date(),
     data: {
-      documents: [],
+      // documents: [],
       selectedFunds: [],
       personalInfo: {},
       loanTerms: {},
-      pledgedAssets: [],
       contract: null,
     },
   };
@@ -22,15 +21,12 @@ const createApplication = (userId: string) => {
 
 const updateApplication = (
   applicationId: string,
-  data: Partial<LoanData>,
-  step: number,
-  complete = false
+  data: Partial<LoanData>, //can be selectedFunds, personalInfo, loanTerms, or contract
+  status: ApplicationStatus //can be draft, pending, manual_review, offered, accepted, rejected, cancelled
 ): Partial<LoanApplication> => {
   const updateObject = {
     data,
-    currentStep: step,
-    status: complete ? 'complete' : 'draft',
-    updatedAt: new Date(),
+    status,
   };
   return updateObject;
 };

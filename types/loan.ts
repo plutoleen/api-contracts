@@ -3,41 +3,41 @@ export interface StoredDocument {
   type: 'subscription' | 'pcap' | 'earnings' | 'other' | 'pending'; // Document category used to map to AI model parsing result
   downloadUrl: string; // URL to download the document
   storagePath: string; // Internal storage path for the document - result of calling uploadToStorage(file)
-  documentAnalysis?: any; // Raw analysis data from document processing - result of calling parseDocument
+  documentAnalysis?: any; // Raw analysis data from document processing - result of calling /api/process-document within analyzeDocument(extractedText)
   analysisResult?: any; // Processed analysis results - result of calling analyzeDocument(extractedText)
-  result?: any; // Final extracted data from document - result of calling parseDocument(extractedText)
+  result?: any; // Raw extracted data from document - result of calling /api/process-document within analyzeDocument(extractedText)
   extractedText?: string; // Plain text extracted from the document - result of calling extractTextFromPDF(file)
   status?: 'uploading' | 'processing' | 'complete' | 'error' | 'deleted'; // Processing status
 }
 
-export type LoanStatus = 'unsigned' | 'signed' | 'disbursed' | 'closed' | 'possessed'; // Current loan application status
-export type ApplicationStatus = 'draft' | 'pending' | 'manual_review' | 'offered' | 'accepted' | 'rejected' | 'cancelled'; // Overall application status
+export type LoanStatus = 'unsigned' | 'signed' | 'disbursed' | 'closed'; // loan status
+export type ApplicationStatus = 'draft' | 'pending' | 'manual_review' | 'offered' | 'accepted' | 'rejected' | 'cancelled'; // loan application status
 
 export interface LoanApplication {
   id: string; // Unique application identifier
   userId: string; // Borrower's user ID
   name: string; // Application name/description
   status: ApplicationStatus; // Current application status
-  currentStep: number; // Current step in application process
+  // currentStep: number; // Current step in application process -> calculated from application status
   createdAt: Date; // When application was created
   updatedAt: Date; // Last modification timestamp
   data: LoanData; // All loan application data
-  canRestore?: boolean; // Whether application can be restored if deleted
+  canRestore?: boolean; //TODO: not sure if needed; Whether application can be restored if deleted
 }
 
 export interface LoanData {
-  documents: StoredDocument[] | []; // All uploaded loan documents
-  decisioningDocs?:
-    | Array<{
-        // Additional documents for loan decisioning
-        name: string; // Document name
-        downloadUrl: string; // Download URL
-        storagePath: string; // Storage path
-        uploadedAt: Date; // Upload timestamp
-        type: 'decisioning_support'; // Document type for decisioning
-      }>
-    | [];
-  availableFunds: //assets found on parsing docs, used to select funds to pledge as collateral
+  // documents: StoredDocument[] | []; // All uploaded loan documents -> should be ref from files table, not LoanData
+  // decisioningDocs?: //TODO: not sure if needed; Additional documents for loan decisioning, can be placed in files table
+  //   | Array<{
+  //       // Additional documents for loan decisioning
+  //       name: string; // Document name
+  //       downloadUrl: string; // Download URL
+  //       storagePath: string; // Storage path
+  //       uploadedAt: Date; // Upload timestamp
+  //       type: 'decisioning_support'; // Document type for decisioning
+  //     }>
+  //   | [];
+  selectedFunds: //assets found on parsing docs, used to select funds to pledge as collateral
   | Array<{
         fundName: string; // Fund name
         symbol: string; // Fund's trading symbol
@@ -111,21 +111,21 @@ export interface LoanContract {
   //jsonb snapshot of the final loan contract
   // 1. Loan Identification
   loan_id: string; // Unique loan identifier UUID
-  loan_type: string; // Type of loan (e.g., asset-backed, personal) -> is this necessary
-  loan_purpose: string; // Purpose of the loan -> is this necessary
+  loan_type: string; //TODO: Type of loan (e.g., asset-backed, personal) set by admin, not sure if necessary
+  loan_purpose: string; //TODO: Purpose of the loan set by admin, not sure if necessary
   loan_structure: 'Monthly Interest + Principal at Maturity' | 'Interest + Principal at Maturity'; // Loan structure type from loanTerms.paymentFrequency
 
   // 2. Borrower & Lender Information
   borrower_firstname: string; // Borrower's first name
   borrower_lastname: string; // Borrower's last name
-  borrower_type: string; // Type of borrower (individual, business)
+  borrower_type: 'individual' | 'business'; // Type of borrower (individual, business)
   lender_id: string; // Lender's identifier
   lender_name: string; // Lender's name
 
   // 3. Loan Terms
   principal_amount: number; // Original loan amount from loanTerms.loanAmount
   current_balance: number; // Current outstanding balance including accrued interest, calculated by Eunomia
-  currency: string; // Loan currency from loanTerms.currency
+  currency: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'SEK' | 'NZD'; // Loan currency from loanTerms.currency
   inception_fee: number; // Inception fee, typically 1% of the loan amount set by admin
   interest_rate_spread: number; // Interest rate spread above base rate from loanTerms.spreadRate
   base_rate: number; // Base interest rate (e.g., SOFR) from loanTerms.baseRate
@@ -159,9 +159,9 @@ export interface LoanContract {
   insurance_expiry_date: Date;
   collateral_assets: Array<{
     // Individual collateral assets
-    fund_name: string; //from pledgedAssets.fundName
-    value: number; //from pledgedAssets.value
-    pledged_date: Date; //from pledgedAssets.subscriptionDate/orignDate?
+    fund_name: string; //from selectedFunds.fundName
+    value: number; //from selectedFunds.value
+    pledged_date: Date; //from selectedFunds.subscriptionDate/orignDate?
     status: 'active' | 'released' | 'defaulted';
   }>;
 
@@ -177,20 +177,19 @@ export interface LoanContract {
   repayment_source: string;
 
   // 6. Legal & Compliance
-  jurisdiction: string; //Is this meant to be the legal jurisdiction country code?
-  contract_signed_date: Date; // When contract was signed
-  contract_status: 'active' | 'pending' | 'completed' | 'defaulted'; // Current contract status
-  disbursement_date: Date; // When loan was disbursed from loan.openDate
-  disbursement_method: string;
+  jurisdiction: string; //TODO: Is this meant to be the legal jurisdiction country code?
+  contract_signed_date: Date; // When contract was signed from contract.signedAt
+  contract_status: 'active' | 'pending' | 'completed' | 'defaulted'; // Current loan contract status
+  disbursement_date: Date; // When loan was disbursed from loan.dateOpen
+  disbursement_method: string; //TODO: validate if needed at all; 'bank_transfer' or 'ach' or 'wire'?
   loan_covenants: string[];
   default_provisions: string[];
   secured_party_name: string;
 
   // 7. Additional Fields
   notes: string; // Additional notes
-  uploaded_documents: string[]; // List of uploaded documents
+  uploaded_documents: string[]; // List of uploaded documents -> should be ref from files table
   modified_by: string; // Who last modified the contract
-  modified_date: Date; // When last modified
   created_at: Date; // When contract was created
   updated_at: Date; // When contract was last updated
 }
@@ -203,8 +202,6 @@ export interface PreApprovedAsset {
   spreadRate: number; // Interest rate spread for this asset
   maxLVR: number; // Maximum loan-to-value ratio for this asset
   autoApprove: boolean; // Whether asset is automatically approved
-  createdAt: Date; // When asset was pre-approved
-  updatedAt: Date; // When asset was last updated
   justificationDoc?: {
     // Document justifying pre-approval
     name: string; // Document name
@@ -212,6 +209,8 @@ export interface PreApprovedAsset {
     storagePath: string; // Storage path
     uploadedAt: Date; // Upload timestamp
   };
+  createdAt: Date; // When asset was pre-approved
+  updatedAt: Date; // When asset was last updated
 }
 
 export interface Loan {
@@ -225,6 +224,7 @@ export interface Loan {
   dateClose: Date; // Date when the loan was closed
   accountId: string; // ID of the associated account
   loanApplicationId: string; // ID of the associated loan application
+  loanContract: LoanContract; // Loan contract jsonb snapshot
   createdAt: Date; // Timestamp when the loan was created
   updatedAt: Date; // Timestamp when the loan was last updated
 }

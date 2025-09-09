@@ -1,10 +1,8 @@
-export type AccountType = 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense'; // Standard accounting account categories
-
 export interface Account {
   id: string; // Unique account identifier
   name: string; // Account name
   description: string; // Detailed account description
-  type: AccountType; // Account category type
+  type: 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense'; // Account category type
   createdAt: Date; // When account was created
   updatedAt: Date; // When account was last updated
 }
