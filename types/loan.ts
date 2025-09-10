@@ -1,15 +1,3 @@
-export interface StoredDocument {
-  name: string; // Display name of the document
-  type: 'subscription' | 'pcap' | 'earnings' | 'other' | 'pending'; // Document category used to map to AI model parsing result
-  downloadUrl: string; // URL to download the document
-  storagePath: string; // Internal storage path for the document - result of calling uploadToStorage(file)
-  documentAnalysis?: any; // Raw analysis data from document processing - result of calling /api/process-document within analyzeDocument(extractedText)
-  analysisResult?: any; // Processed analysis results - result of calling analyzeDocument(extractedText)
-  result?: any; // Raw extracted data from document - result of calling /api/process-document within analyzeDocument(extractedText)
-  extractedText?: string; // Plain text extracted from the document - result of calling extractTextFromPDF(file)
-  status?: 'uploading' | 'processing' | 'complete' | 'error' | 'deleted'; // Processing status
-}
-
 export type LoanStatus = 'unsigned' | 'signed' | 'disbursed' | 'closed'; // loan status
 export type ApplicationStatus = 'draft' | 'pending' | 'manual_review' | 'offered' | 'accepted' | 'rejected' | 'cancelled'; // loan application status
 
@@ -22,7 +10,7 @@ export interface LoanApplication {
   createdAt: Date; // When application was created
   updatedAt: Date; // Last modification timestamp
   data: LoanData; // All loan application data
-  canRestore?: boolean; //TODO: not sure if needed; Whether application can be restored if deleted
+  canRestore?: boolean; //TODO: not sure if needed; whether application can be restored if deleted
 }
 
 export interface LoanData {
@@ -52,14 +40,15 @@ export interface LoanData {
   personalInfo:
     | {
         // Borrower's personal information
-        firstName?: string; // Borrower's first name
-        lastName?: string; // Borrower's last name
+        nameGiven?: string; // Borrower's first name
+        nameMiddle?: string; // Borrower's middle name
+        nameFamily?: string; // Borrower's last name
         address?: string; // Street address
         city?: string; // City
         state?: string; // State/province
         zipCode?: string; // ZIP/postal code
         phoneNumber?: string; // Contact phone number
-        employmentStatus?: string; // Current employment status
+        employmentStatus?: 'employed' | 'self-employed' | 'unemployed' | 'retired' | 'student' | 'other'; // Current employment status
       }
     | {};
   loanTerms: LoanTerms | {};
@@ -87,7 +76,7 @@ export interface LoanTerms {
   startDate?: Date; // When loan payments begin aka current date
   disbursementDetails?:
     | {
-        //TODO: should be separate from terms, stored in a vault as sensitive data
+        //TODO: should be stored separately from terms, in a vault as sensitive data
         // Bank account for loan proceeds
         accountNumber: string; // Bank account number
         routingNumber: string; // Bank routing number
@@ -111,13 +100,13 @@ export interface LoanContract {
   //jsonb snapshot of the final loan contract
   // 1. Loan Identification
   loan_id: string; // Unique loan identifier UUID
-  loan_type: string; //TODO: Type of loan (e.g., asset-backed, personal) set by admin, not sure if necessary
-  loan_purpose: string; //TODO: Purpose of the loan set by admin, not sure if necessary
+  loan_type: 'asset-backed'; //Type of loan, all of which will be asset-backed by default, but future cases may allow for other types of loans
+  loan_purpose: string | null; //Purpose of the loan set by admin, most will be for investment purposes but can be for other purposes
   loan_structure: 'Monthly Interest + Principal at Maturity' | 'Interest + Principal at Maturity'; // Loan structure type from loanTerms.paymentFrequency
 
   // 2. Borrower & Lender Information
-  borrower_firstname: string; // Borrower's first name
-  borrower_lastname: string; // Borrower's last name
+  borrower_firstname: string; // Borrower's first name from loanApplication.data.personalInfo.nameGiven
+  borrower_lastname: string; // Borrower's last name from loanApplication.data.personalInfo.nameFamily
   borrower_type: 'individual' | 'business'; // Type of borrower (individual, business)
   lender_id: string; // Lender's identifier
   lender_name: string; // Lender's name
@@ -154,9 +143,9 @@ export interface LoanContract {
   lien_filing_reference: string;
   ucc_filing_date: Date;
   ltv_ratio: number; // Loan-to-value ratio from asset.maxLTV
-  collateral_insurance_status: string;
-  insurance_provider: string;
-  insurance_expiry_date: Date;
+  // collateral_insurance_status: string; //leave blank for now
+  // insurance_provider: string;
+  // insurance_expiry_date: Date;
   collateral_assets: Array<{
     // Individual collateral assets
     fund_name: string; //from selectedFunds.fundName
@@ -170,21 +159,21 @@ export interface LoanContract {
   next_payment_due_date: Date; // Next payment due date
   last_payment_date: Date; // Date of last payment
   payment_status: 'current' | 'late' | 'default'; // Current payment status
-  covenants_status: string;
-  collateral_status: string;
-  default_trigger_event: string;
-  default_recourse_action: string;
-  repayment_source: string;
+  // covenants_status: string | null; //leave blank for now as Apollo does not have this
+  // collateral_status: string | null;
+  // default_trigger_event: string | null; //leave blank for now as Apollo does not have this
+  // default_recourse_action: string | null; //leave blank for now as Apollo does not have this
+  // repayment_source: string | null; //leave blank for now as Apollo does not have this
 
   // 6. Legal & Compliance
-  jurisdiction: string; //TODO: Is this meant to be the legal jurisdiction country code?
+  jurisdiction: string; // Legal jurisdiction country code
   contract_signed_date: Date; // When contract was signed from contract.signedAt
   contract_status: 'active' | 'pending' | 'completed' | 'defaulted'; // Current loan contract status
   disbursement_date: Date; // When loan was disbursed from loan.dateOpen
-  disbursement_method: string; //TODO: validate if needed at all; 'bank_transfer' or 'ach' or 'wire'?
-  loan_covenants: string[];
-  default_provisions: string[];
-  secured_party_name: string;
+  disbursement_method: string; //ACH, wire, etc.
+  // loan_covenants: string[]; //leave blank for now as Apollo does not have this
+  // default_provisions: string[]; //leave blank for now as Apollo does not have this
+  // secured_party_name: string; // Name of the cus
 
   // 7. Additional Fields
   notes: string; // Additional notes

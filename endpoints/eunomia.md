@@ -1,9 +1,8 @@
 # Eunomia Endpoints
 
-/createLedgerEntry
- -> only when a loan is disbursed or when interest is accrued
-/getStatements
+/ledger -> create ledger entry only when a loan is disbursed or when interest is accrued
+/statements -> get statements
 
 # later sprint -> unusual for payments to be done before maturity
-/getPaymentHistory
-/makePayment
+/payment/[id] -> get payment history
+/payment/[id] -> make a payment
