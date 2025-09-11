@@ -1,3 +1,17 @@
+// Eunomia ledger entry structure
+export interface LedgerEntry {
+  id: 'uuid-12345';
+  debit_account_id: 'cash';
+  credit_account_id: 'interest-receivables';
+  amount: '200.00';
+  description: 'Interest payment - Contract CONTRACT-001';
+  user_id: 'system-auto';
+  contract_id: 'uuid-12345';
+  timestamp: '2025-08-14T16:20:01.615691';
+}
+
+//vs. demo-site- /src/lib/api/paymentHistory.ts
+
 export interface PaymentRecord {
   id: string; // Unique payment identifier
   loanId: string; // Associated loan ID
