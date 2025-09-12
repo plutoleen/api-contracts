@@ -1,136 +1,69 @@
-export type LoanStatus = 'unsigned' | 'signed' | 'disbursed' | 'closed'; // loan status
-export type ApplicationStatus = 'draft' | 'pending' | 'manual_review' | 'offered' | 'accepted' | 'rejected' | 'cancelled'; // loan application status
-
-export interface LoanApplication {
-  id: string; // Unique application identifier
-  userId: string; // Borrower's user ID
-  name: string; // Application name/description
-  status: ApplicationStatus; // Current application status
-  // currentStep: number; // Current step in application process -> calculated from application status
-  createdAt: Date; // When application was created
-  updatedAt: Date; // Last modification timestamp
-  data: LoanData; // All loan application data
-  canRestore?: boolean; //TODO: not sure if needed; whether application can be restored if deleted
+import { Sofr } from './loan-application';
+export interface Loan {
+  id: string; // Unique identifier for the loan
+  accountId: string; // ID of the associated account which will be the borrower id in eunomia
+  loanApplicationId: string; // ID of the associated loan application
+  name: string; // Name of the loan which includes the borrower's name and the date opened
+  status: 'unsigned' | 'signed' | 'disbursed' | 'closed'; // TODO: discuss if 'open' should be added in case further action needs to be taken when all parties sign loan contract agreements
+  balanceOpen: number; // Opening balance of the loan in cents
+  balanceCurrent: number; // Current balance of the loan in cents aka outstanding balance from Eunomia
+  currentLVR: number; // Current Loan-to-value ratio from Eunomia
+  interestCalculatedLastDate: Date; // Last date interest was calculated from interest engine
+  nextPaymentDueDate: Date; // Next payment due date from Eunomia
+  lastPaymentDate: Date; // Date of last payment from Eunomia
+  currency: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'SEK' | 'NZD';
+  loanContract: LoanContract; // Loan contract jsonb snapshot
+  dateOpen: Date; // Date when the loan was opened (when a loan offer is accepted)
+  dateClose: Date; // Date when the loan was closed (when a loan is fully repaid or defaulted)
+  createdAt: Date; // Timestamp when the loan was created
+  updatedAt: Date; // Timestamp when the loan was last updated
 }
 
-export interface LoanData {
-  // documents: StoredDocument[] | []; // All uploaded loan documents -> should be ref from files table, not LoanData
-  // decisioningDocs?: //TODO: not sure if needed; Additional documents for loan decisioning, can be placed in files table
-  //   | Array<{
-  //       // Additional documents for loan decisioning
-  //       name: string; // Document name
-  //       downloadUrl: string; // Download URL
-  //       storagePath: string; // Storage path
-  //       uploadedAt: Date; // Upload timestamp
-  //       type: 'decisioning_support'; // Document type for decisioning
-  //     }>
-  //   | [];
-  selectedFunds: //assets found on parsing docs, used to select funds to pledge as collateral
-  | Array<{
-        fundName: string; // Fund name
-        symbol: string; // Fund's trading symbol
-        type: 'pcap' | 'subscription' | 'other'; // Fund type //TODO: validate if needed at all
-        pledged: boolean; // Whether asset is pledged as collateral
-        status: 'active' | 'released' | 'defaulted'; // Whether asset is pledged as collateral
-        value: number; // Fund value
-        quantity: number; // Number of units/shares held
-        maxLTV: number; // Maximum loan-to-value ratio for this fund if match detected during parsing
-      }>
-    | [];
-  personalInfo:
-    | {
-        // Borrower's personal information
-        nameGiven?: string; // Borrower's first name
-        nameMiddle?: string; // Borrower's middle name
-        nameFamily?: string; // Borrower's last name
-        address?: string; // Street address
-        city?: string; // City
-        state?: string; // State/province
-        zipCode?: string; // ZIP/postal code
-        phoneNumber?: string; // Contact phone number
-        employmentStatus?: 'employed' | 'self-employed' | 'unemployed' | 'retired' | 'student' | 'other'; // Current employment status
-      }
-    | {};
-  loanTerms: LoanTerms | {};
-  contract: Contract | null; // Contract signing status
-  offer?: LoanOffer | null;
-}
-
-export interface Contract {
-  signed: boolean; // Whether the contract has been signed by the borrower
-  signedAt?: Date; // Timestamp when the contract was signed
-}
-
-export interface Sofr {
-  rate: number; // Current SOFR (Secured Overnight Financing Rate)
-  lastUpdated: Date; // When SOFR rate was last updated
-}
-
-export interface LoanTerms {
-  spreadRate?: number; // Interest rate spread above SOFR
-  baseRate: Sofr; // SOFR rate
-  loanAmount?: number; // Requested loan amount
-  term?: number; // Loan term in months
-  ltv?: number; // Loan-to-value ratio
-  paymentFrequency?: 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only'; // How often payments are due
-  startDate?: Date; // When loan payments begin aka current date
-  disbursementDetails?:
-    | {
-        //TODO: should be stored separately from terms, in a vault as sensitive data
-        // Bank account for loan proceeds
-        accountNumber: string; // Bank account number
-        routingNumber: string; // Bank routing number
-        accountType: 'checking' | 'savings'; // Type of bank account
-        recipientName: string; // Account holder name
-      }
-    | {};
-}
-
-export interface LoanOffer {
-  maxLoanSize: number; // Maximum loan amount offered
-  baseRate: Sofr; // SOFR rate
-  spreadRate: number; // Interest rate spread above baseRate
-  totalRate: number; // Total interest rate (base rate + spread)
-  maxLVR: number; // Maximum loan-to-value ratio
-  term: number; // Loan term in months
-  paymentTerms: 'monthly_interest_principal_maturity' | 'amortized_interest_principal_maturity'; // Payment structure
+export interface InterestRate {
+  baseRate: Sofr; // Index/benchmark SOFR rate at offer time
+  spread: number; // lender’s margin/markup over the base rate
+  nominalRate: number; // Combined rate of interest (base rate + spread) used for repayment calculations
+  apr: number; // Annual percentage rate used for regulatory disclosures/compliance which bakes in fees, compounding, etc.
+  lastUpdated: Date;
 }
 
 export interface LoanContract {
   //jsonb snapshot of the final loan contract
   // 1. Loan Identification
   loan_id: string; // Unique loan identifier UUID
-  loan_type: 'asset-backed'; //Type of loan, all of which will be asset-backed by default, but future cases may allow for other types of loans
-  loan_purpose: string | null; //Purpose of the loan set by admin, most will be for investment purposes but can be for other purposes
-  loan_structure: 'Monthly Interest + Principal at Maturity' | 'Interest + Principal at Maturity'; // Loan structure type from loanTerms.paymentFrequency
+  loan_type: 'asset-backed'; //Type of loan, asset-backed by default, but future cases may include other types of loans
+  loan_purpose: 'investment' | 'business' | 'personal'; //Purpose of the loan set by admin, most will be for investment purposes but can be for other purposes
+  loan_structure: 'monthly_interest_principal_maturity' | 'amortized_interest_principal_maturity'; // Loan structure type from loanTerms.paymentFrequency
+  contract_status: 'pending' | 'active' | 'repaid' | 'defaulted'; // Current loan contract status
 
   // 2. Borrower & Lender Information
-  borrower_firstname: string; // Borrower's first name from loanApplication.data.personalInfo.nameGiven
-  borrower_lastname: string; // Borrower's last name from loanApplication.data.personalInfo.nameFamily
-  borrower_type: 'individual' | 'business'; // Type of borrower (individual, business)
-  lender_id: string; // Lender's identifier
+  borrower_id: string; // Borrower's ID from eunomia
+  lender_id: string; // Lender's identifier //TODO: would this be unnecessary as it's Pluto or would it be the organization/BSP
   lender_name: string; // Lender's name
 
   // 3. Loan Terms
   principal_amount: number; // Original loan amount from loanTerms.loanAmount
-  current_balance: number; // Current outstanding balance including accrued interest, calculated by Eunomia
   currency: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'SEK' | 'NZD'; // Loan currency from loanTerms.currency
   inception_fee: number; // Inception fee, typically 1% of the loan amount set by admin
-  interest_rate_spread: number; // Interest rate spread above base rate from loanTerms.spreadRate
-  base_rate: number; // Base interest rate (e.g., SOFR) from loanTerms.baseRate
-  total_interest_rate: number; // Total interest rate (base rate + spread) calculated
-  lvr: number; // Loan-to-value ratio from loanTerms.ltv
+  interestRate: InterestRate; //from loanTerms.interestRate
+  lvr: number; // Loan-to-value ratio from loanTerms.lvr
   loan_term_months: number; // Loan term in months from loanTerms.term
   origination_date: Date; // When loan was originated from loanTerms.startDate
-  maturity_date: Date; // When loan matures from loanTerms.startDate + loanTerms.term
+  maturity_date: Date; // When loan matures from loanTerms.dateOpen + loanTerms.term
   payment_frequency: 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only'; // How often payments are due from loanTerms.paymentFrequency
   prepayment_penalty: number; // Penalty for early repayment set by admin
   late_payment_fee: number; // Fee for late payments set by admin
   grace_period_days: number; // Grace period before late fees set by admin
-  interest_calculated_last_date: Date; // Last date interest was calculated from interest engine
   interest_payment_structure: 'monthly_payment' | 'amortized_at_maturity'; // How interest is paid
 
   // 4. Asset & Collateral Information
+  collateral_assets: Array<{
+    // Individual collateral assets
+    fund_name: string; //from selectedFunds.fundName
+    value: number; //from selectedFunds.value
+    pledged_date: Date; //from selectedFunds.pledgedDate
+    status: 'active' | 'released' | 'defaulted'; // Whether asset is pledged as collateral
+  }>;
   collateral_id: string;
   collateral_type: string;
   collateral_description: string;
@@ -142,23 +75,10 @@ export interface LoanContract {
   lien_position: string;
   lien_filing_reference: string;
   ucc_filing_date: Date;
-  ltv_ratio: number; // Loan-to-value ratio from asset.maxLTV
   // collateral_insurance_status: string; //leave blank for now
   // insurance_provider: string;
   // insurance_expiry_date: Date;
-  collateral_assets: Array<{
-    // Individual collateral assets
-    fund_name: string; //from selectedFunds.fundName
-    value: number; //from selectedFunds.value
-    pledged_date: Date; //from selectedFunds.subscriptionDate/orignDate?
-    status: 'active' | 'released' | 'defaulted';
-  }>;
 
-  // 5. Repayment & Loan Monitoring
-  outstanding_balance: number; // Calculated from Eunomia
-  next_payment_due_date: Date; // Next payment due date
-  last_payment_date: Date; // Date of last payment
-  payment_status: 'current' | 'late' | 'default'; // Current payment status
   // covenants_status: string | null; //leave blank for now as Apollo does not have this
   // collateral_status: string | null;
   // default_trigger_event: string | null; //leave blank for now as Apollo does not have this
@@ -168,9 +88,8 @@ export interface LoanContract {
   // 6. Legal & Compliance
   jurisdiction: string; // Legal jurisdiction country code
   contract_signed_date: Date; // When contract was signed from contract.signedAt
-  contract_status: 'active' | 'pending' | 'completed' | 'defaulted'; // Current loan contract status
-  disbursement_date: Date; // When loan was disbursed from loan.dateOpen
-  disbursement_method: string; //ACH, wire, etc.
+  disbursement_date: Date; // When loan was disbursed from eunomia or loan.dateOpen
+  disbursement_method: 'ach' | 'wire' | 'check' | 'bank_transfer'; //ACH, wire, etc.
   // loan_covenants: string[]; //leave blank for now as Apollo does not have this
   // default_provisions: string[]; //leave blank for now as Apollo does not have this
   // secured_party_name: string; // Name of the cus
@@ -181,39 +100,4 @@ export interface LoanContract {
   modified_by: string; // Who last modified the contract
   created_at: Date; // When contract was created
   updated_at: Date; // When contract was last updated
-}
-
-export interface PreApprovedAsset {
-  //added by admins at /api/organizations/[id]/assets
-  id: string; // Unique asset identifier
-  name: string; // Asset name mapping to asset.fundName
-  identifier: string; // CUSIP or other unique identifier mapping to asset.symbol
-  spreadRate: number; // Interest rate spread for this asset
-  maxLVR: number; // Maximum loan-to-value ratio for this asset
-  autoApprove: boolean; // Whether asset is automatically approved
-  justificationDoc?: {
-    // Document justifying pre-approval
-    name: string; // Document name
-    downloadUrl: string; // Download URL
-    storagePath: string; // Storage path
-    uploadedAt: Date; // Upload timestamp
-  };
-  createdAt: Date; // When asset was pre-approved
-  updatedAt: Date; // When asset was last updated
-}
-
-export interface Loan {
-  id: string; // Unique identifier for the loan
-  status: 'open' | 'defaulted' | 'closed'; // Current status of the loan
-  name: string; // Name of the borrower
-  balanceOpen: number; // Opening balance of the loan in cents
-  balanceCurrent: number; // Current balance of the loan in cents
-  currency: string; // Currency of the loan from ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD"]
-  dateOpen: Date; // Date when the loan was opened
-  dateClose: Date; // Date when the loan was closed
-  accountId: string; // ID of the associated account
-  loanApplicationId: string; // ID of the associated loan application
-  loanContract: LoanContract; // Loan contract jsonb snapshot
-  createdAt: Date; // Timestamp when the loan was created
-  updatedAt: Date; // Timestamp when the loan was last updated
 }

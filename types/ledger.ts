@@ -1,139 +1,52 @@
-// Eunomia ledger entry structure
-export interface LedgerEntry {
-  id: 'uuid-12345';
-  debit_account_id: 'cash';
-  credit_account_id: 'interest-receivables';
-  amount: '200.00';
-  description: 'Interest payment - Contract CONTRACT-001';
-  user_id: 'system-auto';
-  contract_id: 'uuid-12345';
-  timestamp: '2025-08-14T16:20:01.615691';
+export interface Account {
+  //chart of accounts
+  id: string; // Unique account identifier
+  name: string; // Account name
+  description: string; // Detailed account description
+  type: 'Asset' | 'Revenue' | 'Liability' | 'Equity' | 'Expense'; // Account category type
+  createdAt: Date; // When account was created
+  updatedAt: Date; // When account was last updated
 }
 
-//vs. demo-site- /src/lib/api/paymentHistory.ts
-
-export interface PaymentRecord {
-  id: string; // Unique payment identifier
-  loanId: string; // Associated loan ID
-  contractId: string; // Associated loan contract ID
-  amount: number; // Total payment amount
-  interestPayment: number; // Portion of payment applied to interest
-  principalPayment: number; // Portion of payment applied to principal
-  paymentMethod: string; // Method used for payment (e.g., ACH, wire)
-  status: string; // Payment processing status
-  createdAt: Date; // When payment record was created
-  processedAt: Date; // When payment was processed
-  userId: string; // User who made the payment
+export interface AccountBalance {
+  //running total of the account
+  accountId: string; // Account identifier, references accounts.id
+  balance: number; // Current account balance
+  lastUpdated: Date; // When balance was last calculated
 }
 
-type PaymentFrequency = 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only'; // How often payments are due
-
-// Payment schedule types
-interface PaymentSchedule {
-  date: Date; // When payment is due
-  principal: number; // Principal portion of payment
-  interest: number; // Interest portion of payment
-  total: number; // Total payment amount
-  remainingBalance: number; // Remaining loan balance after payment
+export interface GeneralLedger {
+  //ledger entries
+  id: string; // Unique ledger entry identifier
+  debitAccountId: 'cash' | string; // Account to debit (decrease)
+  creditAccountId: 'interest-receivables' | string; // Account to credit (increase)
+  amount: number; // Transaction amount
+  description: string; // Transaction description
+  userId: 'system-auto' | string; // User associated with the entry
+  contractId?: string; // Associated loan contract (if applicable)
+  timestamp: Date; // When the transaction occurred
+  createdAt: Date; // When entry was created
+  updatedAt: Date; // When entry was last updated
 }
 
-calculatePaymentSchedule: (
-  principal: number,
-  annualInterestRate: number,
-  termMonths: number,
-  frequency: PaymentFrequency,
-  startDate: Date
-): PaymentSchedule[] => {
-  const schedule: PaymentSchedule[] = [];
-  const periodicRate = annualInterestRate / 100 / 12;
-  let remainingBalance = principal;
-  const baseDate = new Date(startDate);
-
-  switch (frequency) {
-    case 'monthly': {
-      // monthly payments with equal principal and interest
-      const monthlyPayment =
-        (principal * periodicRate * Math.pow(1 + periodicRate, termMonths)) / (Math.pow(1 + periodicRate, termMonths) - 1);
-      let remainingBalance = principal;
-
-      for (let month = 1; month <= termMonths; month++) {
-        const interestPayment = remainingBalance * periodicRate;
-        const principalPayment = monthlyPayment - interestPayment;
-        remainingBalance -= principalPayment;
-
-        const paymentDate = new Date(baseDate);
-        paymentDate.setMonth(paymentDate.getMonth() + month);
-
-        schedule.push({
-          date: paymentDate,
-          principal: principalPayment,
-          interest: interestPayment,
-          total: monthlyPayment,
-          remainingBalance: Math.max(0, remainingBalance),
-        });
-      }
-      break;
-    }
-
-    case 'interest_only': {
-      // Interest-only payments with balloon at maturity
-      const monthlyInterest = principal * periodicRate;
-
-      // Add interest-only payments
-      for (let month = 1; month < termMonths; month++) {
-        const paymentDate = new Date(baseDate);
-        paymentDate.setMonth(paymentDate.getMonth() + month);
-
-        schedule.push({
-          date: paymentDate,
-          principal: 0,
-          interest: monthlyInterest,
-          total: monthlyInterest,
-          remainingBalance: principal,
-        });
-      }
-
-      // Add final balloon payment
-      const finalDate = new Date(baseDate);
-      finalDate.setMonth(finalDate.getMonth() + termMonths);
-
-      schedule.push({
-        date: finalDate,
-        principal: principal,
-        interest: monthlyInterest,
-        total: principal + monthlyInterest,
-        remainingBalance: 0,
-      });
-    }
-
-    case 'bullet': {
-      // Only interest payments until maturity
-      const monthlyInterest = principal * periodicRate;
-
-      // Add interest-only payments
-      for (let month = 1; month < termMonths; month++) {
-        const paymentDate = new Date(baseDate);
-        paymentDate.setMonth(paymentDate.getMonth() + month);
-
-        schedule.push({
-          date: paymentDate,
-          principal: 0,
-          interest: monthlyInterest,
-          total: monthlyInterest,
-          remainingBalance: principal,
-        });
-      }
-
-      // Add final balloon payment
-      schedule.push({
-        date: new Date(baseDate),
-        principal: principal,
-        interest: monthlyInterest,
-        total: principal + monthlyInterest,
-        remainingBalance: 0,
-      });
-    }
-  }
-
-  return schedule;
-};
+//example accounts
+const accounts = [
+  {
+    id: 'interest-receivables',
+    name: 'Interest Receivables',
+    description: 'Interest that Customers owe to Pluto',
+    type: 'Asset',
+  },
+  {
+    id: 'interest-earned',
+    name: 'Interest Earned',
+    description: 'Interest that Pluto has earned from Customers',
+    type: 'Revenue',
+  },
+  {
+    id: 'loans-outstanding',
+    name: 'Loans Outstanding',
+    description: 'Loans that Pluto has made to Customers',
+    type: 'Asset',
+  },
+];

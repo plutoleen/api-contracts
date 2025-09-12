@@ -1,5 +1,4 @@
-// vs. demo/types/documents.ts
-
+//Document type in Demo site
 export interface Document {
   id?: string; // Unique document identifier (optional for new documents)
   name: string; // Display name of the document
@@ -39,13 +38,14 @@ export interface StoredDocument {
   status?: 'uploading' | 'processing' | 'complete' | 'error' | 'deleted'; // Processing status
 }
 
-// vs. charon/resources/file-refs
+// File reference type in Charon
 
 export interface FileRef {
   id: string; //uuid - Unique identifier for the file reference
   accountId: string; //uuid - ID of the associated account
   documentableId: string; //uuid - ID of the documentable object
-  documentableType: 'loanApplication' | 'loanAsset' | 'loanIncome' | 'account'; //string -Type of the documentable object
+  documentableType: 'loanApplication' | 'loanAsset' | 'loanIncome' | 'account'; //Type of the documentable object
+  documentType: 'subscription' | 'pcap' | 'W2' | '1099-MISC' | '1099-INT' | '1099-DIV' | '1099-R' | 'other'; //Type of document for categorization
   filename: string; //Original filename with secure character restrictions
   fileContentType:
     | 'application/pdf'
@@ -61,8 +61,8 @@ export interface FileRef {
     | 'text/plain'; //MIME type of the file (restricted to allowed types)
   awsBucket: string; //AWS S3 bucket name (DNS-compliant)
   awsKey: string; //AWS S3 key (path traversal protection)
-  documentType: 'W2' | '1099-MISC' | '1099-INT' | '1099-DIV' | '1099-R' | 'fund-statement' | 'other'; //Type of document for categorization
-  status: 'quarantined' | 'processed' | 'failed'; //string -Processing status of the file
+
+  status: 'quarantined' | 'processed' | 'failed'; //Processing status of the file
   metadata: any; //Additional metadata as JSON object
   createdAt: Date; //Timestamp when the file reference was created
   updatedAt: Date; //Timestamp when the file reference was last updated
