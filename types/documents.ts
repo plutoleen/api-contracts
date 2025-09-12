@@ -61,8 +61,17 @@ export interface FileRef {
     | 'text/plain'; //MIME type of the file (restricted to allowed types)
   awsBucket: string; //AWS S3 bucket name (DNS-compliant)
   awsKey: string; //AWS S3 key (path traversal protection)
-  documentType: 'W2' | '1099-MISC' | '1099-INT' | '1099-DIV' | '1099-R' | 'fund-statement' | 'other'; //Type of document for categorization
-  status: 'quarantined' | 'processed' | 'failed'; //string -Processing status of the file
+  documentType:
+    | 'PCAP Statement'
+    | 'Subscription Document'
+    | 'W2'
+    | '1099-MISC'
+    | '1099-INT'
+    | '1099-DIV'
+    | '1099-R'
+    | 'fund-statement'
+    | 'other'; //Type of document for categorization
+  status: 'quarantined' | 'processed' | 'failed'; //Processing status of the file
   metadata: any; //Additional metadata as JSON object
   createdAt: Date; //Timestamp when the file reference was created
   updatedAt: Date; //Timestamp when the file reference was last updated

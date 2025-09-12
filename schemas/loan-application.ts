@@ -1,4 +1,4 @@
-import { LoanApplication, ApplicationStatus, LoanData } from '../types/loan';
+import { LoanApplication, ApplicationStatus, LoanData } from '../types/loan-application';
 
 const createApplication = (userId: string) => {
   const newApplication: Omit<LoanApplication, 'id'> = {
@@ -10,8 +10,9 @@ const createApplication = (userId: string) => {
     updatedAt: new Date(),
     data: {
       // documents: [],
-      selectedFunds: [],
+      availableFunds: [],
       personalInfo: {},
+      offer: null,
       loanTerms: {},
       contract: null,
     },
