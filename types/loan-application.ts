@@ -1,4 +1,12 @@
-import { ISODateString, UUID, InterestRateSnapshot, PaymentFrequency, PaymentStructure, ApplicationStatus } from './shared';
+import {
+  ISODateString,
+  UUID,
+  InterestRateSnapshot,
+  PaymentFrequency,
+  PaymentStructure,
+  ApplicationStatus,
+  Currency,
+} from './shared';
 
 export interface LoanApplication {
   id: UUID; // Unique uuid for loan application
@@ -7,19 +15,19 @@ export interface LoanApplication {
   status: ApplicationStatus; // Current application status
   data: {
     availableFunds: AvailableFund[] | [];
-    borrowerInfo?: BorrowerInfo | null;
+    borrowerInfo?: BorrowerInfo | null; //could come from the user profile instead
     offer?: LoanOffer | null; // Loan offer provided by the lender either through auto-approval or manual review
     loanTerms?: LoanTerms | null; // Final loan terms accepted by the borrower
     contract?: Contract | null; // Contract agreement signing status
   }; // All loan application data
-  canRestore?: boolean; //TODO: not sure if needed; whether application can be restored if deleted
+  canRestore?: boolean; //TODO: validate if needed; whether application can be restored if deleted
   createdBy?: UUID;
   updatedBy?: UUID;
   createdAt: ISODateString; // When application was created
   updatedAt: ISODateString; // Last modification timestamp
 }
 export interface AvailableFund {
-  //assets found on parsing docs, used to select funds to pledge as collateral
+  //assets found on parsing docs, used to select funds to pledge as collateral -> will be stored in the assets table
   fundName: string; // Fund name
   symbol: string; // Fund's identifier/CUSIP symbol
   type: 'pcap' | 'subscription' | 'other'; //TODO: validate if needed at all
@@ -65,6 +73,7 @@ export interface Contract {
 export interface LoanOffer {
   //snapshot of the initial loan offer provided by the lender either through auto-approval or manual review
   offerId: UUID;
+  jurisdiction: string; // Legal jurisdiction country code from organization that made the loan offer
   maxLoanSizeCents: number; // Maximum loan amount offered
   maxLvrPct: number; // Blended maximum loan-to-value ratio based on all assets pledged as collateral
   termMonths: number; // Loan term in months
@@ -73,6 +82,9 @@ export interface LoanOffer {
   inceptionFeePct?: number; // upfront inception fee as a percentage of the loan amount
   inceptionFeeAmountCents?: number; // upfront inception fee amount in cents
   interestRate: InterestRateSnapshot;
+  latePaymentFee: number; // Fee for late payments set by admin
+  prepaymentPenalty: number; // Penalty for early repayment set by admin
+  gracePeriodDays: number; // Grace period before late fees set by admin
   offeredBy: 'system-auto' | string; // Admin/organization/user who made the loan offer, set to system-auto for auto-approval
   offeredAt: ISODateString; // Timestamp when the loan offer was made
   expiresAt: ISODateString; // Timestamp when the loan offer expires
@@ -81,7 +93,9 @@ export interface LoanOffer {
 export interface LoanTerms {
   //Final loan terms accepted by the borrower
   loanAmountCents: number; // Requested loan amount
+  totalAssetValueCents: number; // Total value of all assets pledged as collateral
   lvrPct: number; // Final loan-to-value ratio
+  currency: Currency;
   disbursementInstrumentId?: UUID; // Taken from Vault id/token
 }
 

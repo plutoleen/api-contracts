@@ -6,14 +6,13 @@ Charon is the loan origination and contract management system. It handles user a
 ## Base URL
 Development: <http://localhost:3000/api/v1>
 Staging: <http://charon-staging-alb-296936603.us-east-2.elb.amazonaws.com/api/v1>
-Production: <https://api.plutocredit.com/eunomia>
 
 ## Authentication
 All endpoints require JWT Bearer token
 
 # Missing Endpoints
 
-/org/[id]/assets -> let admin create a preapproved asset per their organization
+/org/[id]/assets -> let admin create a pre-approved asset per their organization
 
 # Current Endpoints
 

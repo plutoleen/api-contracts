@@ -17,9 +17,9 @@ export interface PreApprovedAsset {
   id: string; // Unique asset identifier
   name: string; // Asset name mapping to asset.fundName
   symbol: string; // CUSIP or other unique identifier mapping to asset.symbol
-  spreadRate: number; // Interest rate spread for this asset
-  maxLVR: number; // Maximum loan-to-value ratio for this asset
-  autoApprove: boolean; // Whether asset is automatically approved
+  spreadBps: number; // Interest rate spread for this asset
+  maxLVRPct: number; // Maximum loan-to-value ratio for this asset
+  autoApprove: boolean; // Whether org wants this asset to be automatically approved
   justificationDoc?: {
     // Document justifying pre-approval
     name: string; // Document name
@@ -27,6 +27,7 @@ export interface PreApprovedAsset {
     storagePath: string; // Storage path
     uploadedAt: Date; // Upload timestamp
   };
+  updatedBy: string; // Who last updated the asset
   createdAt: Date; // When asset was pre-approved
   updatedAt: Date; // When asset was last updated
 }

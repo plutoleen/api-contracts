@@ -18,21 +18,15 @@ export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | '
 export type PaymentFrequency = 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only';
 export type PaymentStructure = 'monthly_interest_principal_maturity' | 'amortized_interest_principal_maturity';
 
-// Money: use integer minor units on the wire
-export interface Money {
-  amountCents: number; // integer minor units (e.g., cents)
-  currency: Currency;
-}
-
 export interface SofrSnapshot {
-  rate: number; // numeric (e.g., 0.03 for 3.0%) - Current SOFR (Secured Overnight Financing Rate)
+  sofrRate: number; // numeric (e.g., 0.03 for 3.0%) - Current SOFR (Secured Overnight Financing Rate)
   lastUpdatedAt: ISODateString; // Date this SOFR rate was last updated (provided by the SOFR API)
 }
 
 export interface InterestRateSnapshot {
-  baseRate: SofrSnapshot;
-  spreadBps: number; // use basis points for precision (e.g., 150 = 1.50%)
-  nominalRateBps: number;
-  aprBps: number; // APR in basis points to avoid float precision
-  lastUpdatedAt: ISODateString;
+  baseRate: SofrSnapshot; // Index/benchmark SOFR/LIBOR rate at offer time
+  spreadBps: number; // lender’s margin/markup over the base rate in basis points for precision (e.g., 150 = 1.50%)
+  nominalRateBps: number; // Combined rate of interest (base rate + spread) used for repayment calculations
+  aprBps: number; // APR in basis points to avoid float precision for regulatory disclosures/compliance which bakes in fees, compounding, etc.
+  lastUpdated: ISODateString;
 }

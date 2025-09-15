@@ -1,5 +1,5 @@
 import { UUID, ISODateString } from './shared';
-//Borrower entity in Eunomia
+//Borrower entity in Eunomia if needed
 export interface Borrower {
   id: UUID; // Borrower's ID which is the Charon account ID
   address_id: UUID; // Borrower's address referenced from address.id in Charon

@@ -1,4 +1,5 @@
 import { UUID, ISODateString } from './shared';
+
 //Document type in Demo site
 export interface Document {
   id?: UUID; // Unique document identifier (optional for new documents)
@@ -40,7 +41,6 @@ export interface StoredDocument {
 }
 
 // File reference type in Charon
-
 export interface FileRef {
   id: UUID; //uuid - Unique identifier for the file reference
   accountId: UUID; //uuid - ID of the associated account
@@ -62,7 +62,6 @@ export interface FileRef {
     | 'text/plain'; //MIME type of the file (restricted to allowed types)
   awsBucket: string; //AWS S3 bucket name (DNS-compliant)
   awsKey: string; //AWS S3 key (path traversal protection)
-
   status: 'quarantined' | 'processed' | 'failed'; //Processing status of the file
   metadata: any; //Additional metadata as JSON object
   createdAt: ISODateString; //Timestamp when the file reference was created
