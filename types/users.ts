@@ -1,5 +1,7 @@
+import { UUID } from './shared';
+
 export interface User {
-  id: string; // uuid - Unique identifier for the user
+  id: UUID; // uuid - Unique identifier for the user
   type: 'individual' | 'manager' | 'admin'; // The type of user, 'individual' by default
   nameGiven: string; // Given name supporting international characters
   nameMiddle: string; // Middle name supporting international characters
@@ -13,9 +15,9 @@ export interface User {
 }
 
 export interface Grant {
-  id: string; // uuid - Unique identifier for the grant
-  userId: string; // uuid - ID of the user being granted access
-  accountId: string; // uuid - ID of the account being accessed
+  id: UUID; // uuid - Unique identifier for the grant
+  userId: UUID; // uuid - ID of the user being granted access
+  accountId: UUID; // uuid - ID of the account being accessed
   grantType: 'read' | 'write' | 'admin' | 'owner'; // Type of access granted
   isActive: boolean; // Whether the grant is currently active
   expiresAt: Date; // Timestamp when the grant expires (optional)

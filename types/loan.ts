@@ -1,30 +1,30 @@
-import { Sofr } from './loan-application';
+import { UUID, ISODateString, Currency, SofrSnapshot } from './shared';
 export interface Loan {
-  id: string; // Unique identifier for the loan
-  accountId: string; // ID of the associated account which will be the borrower id in eunomia
-  loanApplicationId: string; // ID of the associated loan application
-  name: string; // Name of the loan which includes the borrower's name and the date opened
+  id: UUID; // Unique identifier for the loan
+  accountId: UUID; // ID of the associated account which will be the borrower id in eunomia
+  loanApplicationId: UUID; // ID of the associated loan application
+  name?: string; // Name of the loan which includes the borrower's name and the date opened
   status: 'unsigned' | 'signed' | 'disbursed' | 'closed'; // TODO: discuss if 'open' should be added in case further action needs to be taken when all parties sign loan contract agreements
-  balanceOpen: number; // Opening balance of the loan in cents
-  balanceCurrent: number; // Current balance of the loan in cents aka outstanding balance from Eunomia
-  currentLVR: number; // Current Loan-to-value ratio from Eunomia
-  interestCalculatedLastDate: Date; // Last date interest was calculated from interest engine
-  nextPaymentDueDate: Date; // Next payment due date from Eunomia
-  lastPaymentDate: Date; // Date of last payment from Eunomia
-  currency: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'SEK' | 'NZD';
-  loanContract: LoanContract; // Loan contract jsonb snapshot
-  dateOpen: Date; // Date when the loan was opened (when a loan offer is accepted)
-  dateClose: Date; // Date when the loan was closed (when a loan is fully repaid or defaulted)
-  createdAt: Date; // Timestamp when the loan was created
-  updatedAt: Date; // Timestamp when the loan was last updated
+  balanceOpenCents: number; // Opening balance of the loan in cents
+  balanceCurrentCents: number; // Current balance of the loan in cents aka outstanding balance from Eunomia
+  currentLvrPct?: number; // Current Loan-to-value ratio from Eunomia
+  interestCalculatedLastAt?: ISODateString | null; // Last date interest was calculated from interest engine
+  nextPaymentDueAt?: ISODateString | null; // Next payment due date from Eunomia
+  lastPaymentAt?: ISODateString; // Date of last payment from Eunomia
+  currency: Currency;
+  loanContractSnapshot?: LoanContract; // Loan contract jsonb snapshot
+  dateOpen?: ISODateString | null; // Date when the loan was opened (when a loan offer is accepted)
+  dateClose?: ISODateString | null; // Date when the loan was closed (when a loan is fully repaid or defaulted)
+  createdAt: ISODateString; // Timestamp when the loan was created
+  updatedAt: ISODateString; // Timestamp when the loan was last updated
 }
 
 export interface InterestRate {
-  baseRate: Sofr; // Index/benchmark SOFR rate at offer time
+  baseRate: SofrSnapshot; // Index/benchmark SOFR rate at offer time
   spread: number; // lender’s margin/markup over the base rate
   nominalRate: number; // Combined rate of interest (base rate + spread) used for repayment calculations
   apr: number; // Annual percentage rate used for regulatory disclosures/compliance which bakes in fees, compounding, etc.
-  lastUpdated: Date;
+  lastUpdated: ISODateString;
 }
 
 export interface LoanContract {
@@ -43,12 +43,12 @@ export interface LoanContract {
 
   // 3. Loan Terms
   principal_amount: number; // Original loan amount from loanTerms.loanAmount
-  currency: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'SEK' | 'NZD'; // Loan currency from loanTerms.currency
+  currency: Currency; // Loan currency from loanTerms.currency
   inception_fee: number; // Inception fee, typically 1% of the loan amount set by admin
   interestRate: InterestRate; //from loanTerms.interestRate
   lvr: number; // Loan-to-value ratio from loanTerms.lvr
   loan_term_months: number; // Loan term in months from loanTerms.term
-  origination_date: Date; // When loan was originated from loanTerms.startDate
+  origination_date: ISODateString; // When loan was originated from loanTerms.startDate
   maturity_date: Date; // When loan matures from loanTerms.dateOpen + loanTerms.term
   payment_frequency: 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only'; // How often payments are due from loanTerms.paymentFrequency
   prepayment_penalty: number; // Penalty for early repayment set by admin
@@ -61,20 +61,20 @@ export interface LoanContract {
     // Individual collateral assets
     fund_name: string; //from selectedFunds.fundName
     value: number; //from selectedFunds.value
-    pledged_date: Date; //from selectedFunds.pledgedDate
+    pledged_date: ISODateString; //from selectedFunds.pledgedDate
     status: 'active' | 'released' | 'defaulted'; // Whether asset is pledged as collateral
   }>;
   collateral_id: string;
   collateral_type: string;
   collateral_description: string;
   collateral_valuation_method: string;
-  collateral_valuation_date: Date;
+  collateral_valuation_date: ISODateString;
   collateral_value: number; // Current collateral value from loanTerms.totalSelectedValue
   collateral_location: string;
   collateral_ownership_status: string;
   lien_position: string;
   lien_filing_reference: string;
-  ucc_filing_date: Date;
+  ucc_filing_date: ISODateString;
   // collateral_insurance_status: string; //leave blank for now
   // insurance_provider: string;
   // insurance_expiry_date: Date;
@@ -87,7 +87,7 @@ export interface LoanContract {
 
   // 6. Legal & Compliance
   jurisdiction: string; // Legal jurisdiction country code
-  contract_signed_date: Date; // When contract was signed from contract.signedAt
+  contract_signed_date: ISODateString; // When contract was signed from contract.signedAt
   disbursement_date: Date; // When loan was disbursed from eunomia or loan.dateOpen
   disbursement_method: 'ach' | 'wire' | 'check' | 'bank_transfer'; //ACH, wire, etc.
   // loan_covenants: string[]; //leave blank for now as Apollo does not have this
@@ -98,6 +98,6 @@ export interface LoanContract {
   notes: string; // Additional notes
   uploaded_documents: string[]; // List of uploaded documents -> should be ref from files table
   modified_by: string; // Who last modified the contract
-  created_at: Date; // When contract was created
-  updated_at: Date; // When contract was last updated
+  created_at: ISODateString; // When contract was created
+  updated_at: ISODateString; // When contract was last updated
 }

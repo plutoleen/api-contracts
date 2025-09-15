@@ -1,6 +1,7 @@
+import { UUID, ISODateString } from './shared';
 //Document type in Demo site
 export interface Document {
-  id?: string; // Unique document identifier (optional for new documents)
+  id?: UUID; // Unique document identifier (optional for new documents)
   name: string; // Display name of the document
   type: 'subscription' | 'pcap' | 'earnings' | 'other' | 'pending'; // Document category
   status?: 'uploading' | 'processing' | 'complete' | 'error' | 'deleted'; // Processing status
@@ -41,9 +42,9 @@ export interface StoredDocument {
 // File reference type in Charon
 
 export interface FileRef {
-  id: string; //uuid - Unique identifier for the file reference
-  accountId: string; //uuid - ID of the associated account
-  documentableId: string; //uuid - ID of the documentable object
+  id: UUID; //uuid - Unique identifier for the file reference
+  accountId: UUID; //uuid - ID of the associated account
+  documentableId: UUID; //uuid - ID of the documentable object
   documentableType: 'loanApplication' | 'loanAsset' | 'loanIncome' | 'account'; //Type of the documentable object
   documentType: 'subscription' | 'pcap' | 'W2' | '1099-MISC' | '1099-INT' | '1099-DIV' | '1099-R' | 'other'; //Type of document for categorization
   filename: string; //Original filename with secure character restrictions
@@ -64,6 +65,6 @@ export interface FileRef {
 
   status: 'quarantined' | 'processed' | 'failed'; //Processing status of the file
   metadata: any; //Additional metadata as JSON object
-  createdAt: Date; //Timestamp when the file reference was created
-  updatedAt: Date; //Timestamp when the file reference was last updated
+  createdAt: ISODateString; //Timestamp when the file reference was created
+  updatedAt: ISODateString; //Timestamp when the file reference was last updated
 }

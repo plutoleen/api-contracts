@@ -1,11 +1,11 @@
 // Payment and Transaction Types for Eunomia API
-type PaymentFrequency = 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only'; // How often payments are due
+import { UUID, ISODateString, PaymentFrequency } from './shared';
 
 export interface Payment {
-  id: string; // Unique payment identifier
-  loan_id: string; // Associated loan ID (from Charon)
-  contract_id: string; // Associated loan contract ID (from Eunomia)
-  borrower_id: string; // Borrower's user ID
+  id: UUID; // Unique payment identifier
+  loan_id: UUID; // Associated loan ID (from Charon)
+  contract_id: UUID; // Associated loan contract ID (from Eunomia)
+  borrower_id: UUID; // Borrower's user ID
   amount: number; // Total payment amount in cents
   principal_payment: number; // Portion applied to principal in cents
   interest_payment: number; // Portion applied to interest in cents
@@ -14,16 +14,16 @@ export interface Payment {
   payment_status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'; // Status
   reference_number?: string; // External payment reference
   notes?: string; // Additional notes
-  processed_at?: Date; // When payment was processed
-  created_at: Date; // When payment record was created
-  updated_at: Date; // Last update timestamp
+  processed_at?: ISODateString; // When payment was processed
+  created_at: ISODateString; // When payment record was created
+  updated_at: ISODateString; // Last update timestamp
 }
 
 export interface PaymentRecord {
-  id: string; // Unique payment identifier
-  borrowerId: string; // Associated borrower ID from eunomia aka accountid from charon
-  loanId: string; // Associated loan ID from charon
-  contractId: string; // Associated loan contract ID from eunomia
+  id: UUID; // Unique payment identifier
+  borrowerId: UUID; // Associated borrower ID from eunomia aka accountid from charon
+  loanId: UUID; // Associated loan ID from charon
+  contractId: UUID; // Associated loan contract ID from eunomia
   amount: number; // Total payment amount
   interestPayment: number; // Portion of payment applied to interest
   principalPayment: number; // Portion of payment applied to principal
@@ -31,9 +31,9 @@ export interface PaymentRecord {
   paymentMethod: string; // Method used for payment (e.g., ACH, wire)
   status: 'current' | 'late' | 'default'; // Current payment status
   userId: string; // User who made the payment
-  processedAt: Date; // When payment was processed
-  createdAt: Date; // When payment record was created
-  updatedAt: Date; // When payment record was last updated
+  processedAt: ISODateString; // When payment was processed
+  createdAt: ISODateString; // When payment record was created
+  updatedAt: ISODateString; // When payment record was last updated
 }
 
 export interface PaymentRequest {
@@ -53,7 +53,7 @@ export interface PaymentHistory {
 }
 
 export interface PaymentScheduleItem {
-  due_date: Date; // When payment is due
+  due_date: ISODateString; // When payment is due
   principal_due: number; // Principal portion in cents
   interest_due: number; // Interest portion in cents
   total_due: number; // Total payment amount in cents
@@ -62,7 +62,7 @@ export interface PaymentScheduleItem {
 }
 
 interface PaymentSchedule {
-  date: Date; // When payment is made
+  date: ISODateString; // When payment is made
   loan_id: string; // Associated loan ID
   schedule: PaymentScheduleItem[];
   principal: number; // Principal portion of payment
@@ -76,7 +76,7 @@ calculatePaymentSchedule: (
   annualInterestRate: number,
   termMonths: number,
   frequency: PaymentFrequency,
-  startDate: Date
+  startDate: ISODateString
 ): PaymentSchedule[] => {
   const schedule: PaymentSchedule[] = [];
   const periodicRate = annualInterestRate / 100 / 12;
