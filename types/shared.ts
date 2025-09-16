@@ -1,18 +1,6 @@
 export type UUID = string; // format: uuidv4
 export type ISODateString = string; // format: ISO 8601 UTC
 
-export type ApplicationStatus =
-  | 'draft'
-  | 'pending'
-  | 'manual_review'
-  | 'offered'
-  | 'accepted'
-  | 'funded'
-  | 'rejected'
-  | 'cancelled';
-
-export type LoanStatus = 'unsigned' | 'signed' | 'disbursed' | 'closed';
-
 export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CHF' | 'CNY' | 'SEK' | 'NZD';
 
 export type PaymentFrequency = 'monthly' | 'quarterly' | 'annually' | 'bullet' | 'interest_only';

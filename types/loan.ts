@@ -1,28 +1,32 @@
 import { UUID, ISODateString, Currency, InterestRateSnapshot } from './shared';
+
+//Loan entity in Charon
 export interface Loan {
   id: UUID; // Unique identifier for the loan
   accountId: UUID; // ID of the associated account which will be the borrower id in eunomia
   loanApplicationId: UUID; // ID of the associated loan application
-  name?: string; // Name of the loan which includes the borrower's name and the date opened
+  loanContractId: UUID; // ID of the associated loan contract in Eunomia
   status: 'unsigned' | 'signed' | 'disbursed' | 'closed'; // TODO: discuss if 'open' should be added in case further action needs to be taken when all parties sign loan contract agreements
+  name: string; // Name of the loan which includes the borrower's name
   currency: Currency;
   balanceOpenCents: number; // Opening balance of the loan in cents
   balanceCurrentCents: number; // Current balance of the loan in cents aka outstanding balance from Eunomia
-  currentLvrPct?: number; // Current Loan-to-value ratio from Eunomia
-  interestCalculatedLastAt?: ISODateString | null; // Last date interest was calculated from interest engine
-  nextPaymentDueAt?: ISODateString | null; // Next payment due date from Eunomia
-  lastPaymentAt?: ISODateString; // Date of last payment from Eunomia
-  loanContractSnapshot?: LoanContract; // Loan contract jsonb snapshot
-  dateOpen?: ISODateString | null; // Date when the loan was opened (when a loan offer is accepted)
-  dateClose?: ISODateString | null; // Date when the loan was closed (when a loan is fully repaid or defaulted)
+  currentLvrPct: number; // Current Loan-to-value ratio from Eunomia
+  interestCalculatedLastAt: ISODateString | null; // Last date interest was calculated from interest engine
+  nextPaymentDueAt: ISODateString | null; // Next payment due date from Eunomia
+  lastPaymentAt: ISODateString; // Date of last payment from Eunomia
+  dateOpen: ISODateString | null; // Date when the loan was opened (when a loan offer is accepted)
+  dateClose: ISODateString | null; // Date when the loan was closed (when a loan is fully repaid or defaulted)
   createdAt: ISODateString; // Timestamp when the loan was created
   updatedAt: ISODateString; // Timestamp when the loan was last updated
 }
 
+//Loan contract entity in Eunomia
 export interface LoanContract {
   //jsonb snapshot of the final loan contract
   // 1. Loan Identification
-  loan_id: UUID; // Unique loan identifier UUID
+  id: UUID; // Unique identifier for the loan contract
+  loan_id: UUID; // loan identifier UUID from loan.id
   loan_type: 'asset-backed'; //Type of loan, asset-backed by default, but future cases may include other types of loans
   loan_purpose: 'investment' | 'business' | 'personal'; //Purpose of the loan set by admin, most will be for investment purposes but can be for other purposes
   loan_structure: 'monthly_interest_principal_maturity' | 'amortized_interest_principal_maturity'; // Loan structure type from loanTerms.paymentFrequency
@@ -60,7 +64,7 @@ export interface LoanContract {
   collateral_id: string; //TODO: not sure what this pertains to
   collateral_type: string;
   collateral_description: string;
-  collateral_valuation_method: string;
+  collateral_valuation_method?: string | null; //e.g. cash flow evaluation method, market value evaluation method, etc.
   collateral_valuation_date: ISODateString;
   collateral_value_cents: number; // Current collateral value from loanTerms.totalAssetValueCents
   collateral_currency: Currency; // collateral value at loan inception from loanTerms.currency

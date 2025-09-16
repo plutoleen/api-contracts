@@ -1,5 +1,22 @@
 import { UUID, ISODateString } from './shared';
-export interface Account {
+
+//General ledger entity in Eunomia
+export interface GeneralLedger {
+  //ledger entries
+  id: UUID; // Unique ledger entry identifier
+  loanId?: UUID; // Associated loan (if applicable)
+  userId: 'system-auto' | string; // User associated with the entry
+  amountCents: number; // Transaction amount in cents
+  debitAccountId: 'cash' | string; // Account to debit (decrease)
+  creditAccountId: 'interest-receivables' | string; // Account to credit (increase)
+  description: string; // Transaction description
+  timestamp: ISODateString; // When the transaction occurred
+  createdAt: ISODateString; // When entry was created
+  updatedAt: ISODateString; // When entry was last updated
+}
+
+//Chart of accounts entity in Eunomia
+export interface ChartOfAccounts {
   //chart of accounts
   id: UUID; // Unique account identifier
   name: string; // Account name
@@ -14,20 +31,6 @@ export interface AccountBalance {
   accountId: UUID; // Account identifier, references accounts.id
   balanceCents: number; // Current account balance in cents
   lastUpdated: ISODateString; // When balance was last calculated
-}
-
-export interface GeneralLedger {
-  //ledger entries
-  id: UUID; // Unique ledger entry identifier
-  loanId?: UUID; // Associated loan (if applicable)
-  userId: 'system-auto' | string; // User associated with the entry
-  amountCents: number; // Transaction amount in cents
-  debitAccountId: 'cash' | string; // Account to debit (decrease)
-  creditAccountId: 'interest-receivables' | string; // Account to credit (increase)
-  description: string; // Transaction description
-  timestamp: ISODateString; // When the transaction occurred
-  createdAt: ISODateString; // When entry was created
-  updatedAt: ISODateString; // When entry was last updated
 }
 
 //example accounts

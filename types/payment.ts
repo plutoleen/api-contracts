@@ -1,42 +1,53 @@
 // Payment and Transaction Types for Eunomia API
 import { UUID, ISODateString, PaymentFrequency, Currency } from './shared';
 
+//Payment entity in Eunomia
 export interface Payment {
   id: UUID; // Unique payment identifier
-  borrower_id: UUID; // Associated borrower ID from eunomia aka accountid from charon
+  borrower_id: UUID; // Associated borrower ID from eunomia aka account.id from charon
   loan_id: UUID; // Associated loan ID from charon
   contract_id: UUID; // Associated loan contract ID from eunomia
   statement_id: UUID; // Statement ID
   payment_record: PaymentRecord; // Detailed payment record
-  payment_amount_cents: number; // Total payment amount in cents, computed from paymentRecord.paymentRequest.total_payment
+  total_payment_cents: number; // Total payment amount in cents, computed from paymentRecord.paymentRequest.total_payment
   remaining_balance_cents: number; // Remaining loan balance after payment
   processed_at: ISODateString; // When payment was processed or cleared
   created_at: ISODateString; // When payment record was created
   updated_at: ISODateString; // When payment record was last updated
 }
 
+//TODO: discuss idempotency key on request
 export interface PaymentRecord {
   id: UUID; // Unique payment identifier
   loan_id: UUID; // Associated loan ID (from Charon)
   contract_id: UUID; // Associated loan contract ID (from Eunomia)
   borrower_id: UUID; // Borrower's user ID
+  statement_id: UUID; // Statement ID
   payment_request: PaymentRequest;
-  payment_status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'; // Status
+  payment_status: PaymentStatus; // Payment status
   statusReason?: string | null;
   failureCode?: string | null; // standardize codes per gateway
   externalReference?: string | null; // upstream bank/gateway id
   settlementId?: string | null; // clearing/settlement reference
   clearingNetwork?: 'ach' | 'swift' | 'fps' | 'sepa' | 'other' | null;
-  idempotencyKey?: string | null; // on create
   processed_at?: ISODateString; // When payment was processed
   created_at: ISODateString; // When payment record was created
   updated_at: ISODateString; // Last update timestamp
 }
 
+export type PaymentStatus =
+  | 'pending' // created, not sent to gateway
+  | 'submitted' // submitted to gateway
+  | 'authorized' // authorized by gateway
+  | 'settled' // cleared by bank/ACH
+  | 'reconciled' // matched to statement/accounting
+  | 'failed'
+  | 'cancelled';
+
 export interface PaymentRequest {
   principal_payment_cents: number; // Portion applied to principal in cents
   interest_payment_cents: number; // Portion applied to interest in cents
-  fees_payment_cents?: number; // Portion applied to fees in cents
+  fees_payment_cents: number | null; // Portion applied to fees in cents
   currency: Currency;
   payment_method: 'ach' | 'wire' | 'check' | 'bank_transfer'; // Method used
   reference_number?: string; // Optional external reference/payment instrument id
