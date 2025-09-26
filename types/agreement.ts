@@ -1,16 +1,12 @@
 import { UUID, ISODateString } from './shared';
-import { FileRef } from './fileRef';
 
 //Agreement entity in Charon
 export interface Agreement {
   id: UUID; //ID of the associated agreement representing a single e-signature contract doc
   fileRefId: UUID; // ID of the associated document from charon fileRefs.id
-  agreementableId: UUID; //ID of the associated object like loan.id
-  agreementableType: 'loanApplication' | 'loan' | 'account';
-  agreementType: 'loanAgreement' | 'pledgedAgreement' | 'fundConsentAgreement';
   envelopeId: string; //DocuSign envelope ID
-  templateVersion: number;
-  file: FileRef[]; //Signed PDF + audit trail
+  status: 'pending' | 'completed' | 'rejected'; //Status of the agreement
+  agreementType: 'loan-agreement' | 'pledged-agreement' | 'fund-consent-agreement';
   signers: AgreementSigner[];
   createdAt: ISODateString;
   updatedAt: ISODateString;
@@ -18,7 +14,7 @@ export interface Agreement {
 
 export interface AgreementSigner {
   order: number; //Order of the signer in the agreement signing order
-  role: 'borrower' | 'lender' | 'fund' | 'guarantor' | 'servicer' | 'admin';
-  status: 'draft' | 'sent' | 'viewed' | 'signed' | 'executed';
-  signedAt?: ISODateString; //Timestamp when the contract was signed
+  role: 'borrower' | 'lender' | 'fund' | 'issuer' | 'servicer';
+  status: 'draft' | 'sent' | 'declined' | 'voided' | 'expired' | 'completed';
+  signedAt: ISODateString; //Timestamp when the contract was signed
 }

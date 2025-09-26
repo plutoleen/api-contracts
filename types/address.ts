@@ -5,7 +5,7 @@ export interface Address {
   //An address with comprehensive international validation
   id: UUID; //Unique identifier for the address
   addressableId: UUID; //ID of the addressable entity
-  addressableType: 'user' | 'account' | 'issuer' | 'servicer' | 'provider'; //Type of the addressable entity
+  addressableType: 'account' | 'organization'; //Type of the addressable entity (consider expanding for organization, provider, fund, etc.)
   street: string; //Street address- max length 200 chars
   locality: string; //City or locality- max length 100 chars
   region: string; //State, province, or region- max length 100 chars

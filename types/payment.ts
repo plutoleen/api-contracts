@@ -16,7 +16,7 @@ export interface Payment {
   updated_at: ISODateString; // When payment record was last updated
 }
 
-//TODO: discuss idempotency key on request
+//TODO: add idempotency key on request
 export interface PaymentRecord {
   id: UUID; // Unique payment identifier
   loan_id: UUID; // Associated loan ID (from Charon)
@@ -40,7 +40,7 @@ export type PaymentStatus =
   | 'submitted' // submitted to gateway
   | 'authorized' // authorized by gateway
   | 'settled' // cleared by bank/ACH
-  | 'reconciled' // matched to statement/accounting
+  | 'reconciled' // matched to statement/accounting aka completed
   | 'failed'
   | 'cancelled';
 

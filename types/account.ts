@@ -4,7 +4,6 @@ import { UUID, ISODateString } from './shared';
 export interface Account {
   //A system account with comprehensive validation
   id: UUID; //Unique identifier for the account
-  addressId: UUID; //ID of the associated address from charon address.id
   nameGiven: string; //Given name supporting international characters
   nameMiddle: string; //Middle name supporting international characters
   nameFamily: string; //Family name supporting international characters

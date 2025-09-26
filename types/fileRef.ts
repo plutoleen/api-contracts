@@ -1,12 +1,21 @@
 import { UUID, ISODateString } from './shared';
 
+export type DocumentType =
+  | 'subscription'
+  | 'pcap'
+  | 'other'
+  | 'loan_agreement'
+  | 'pledged_agreement'
+  | 'fund_consent_agreement'
+  | 'justification'; //Type of document for categorization
+
 // File reference type in Charon
 export interface FileRef {
   id: UUID; //Unique identifier for the file reference
   accountId: UUID; //ID of the associated account
   documentableId: UUID; //ID of the documentable object
   documentableType: 'loanApplication' | 'loanAsset' | 'account'; //Type of the documentable object
-  documentType: 'subscription' | 'pcap' | 'W2' | '1099-MISC' | '1099-INT' | '1099-DIV' | '1099-R' | 'other'; //Type of document for categorization
+  documentType: DocumentType; //Type of document for categorization
   filename: string; //Original filename with secure character restrictions
   fileContentType:
     | 'application/pdf'
@@ -26,6 +35,24 @@ export interface FileRef {
   metadata: any; //Additional metadata as JSON object
   createdAt: ISODateString; //Timestamp when the file reference was created
   updatedAt: ISODateString; //Timestamp when the file reference was last updated
+}
+
+//document analysis result from Clio/AWS Bedrock
+export interface ClioDocumentAnalysis {
+  summary: {
+    type: 'Subscription Document';
+    fund_name: 'Apollo Strategic Fund III';
+    issuer: 'Apollo Global Management';
+    investor_name: 'John Doe';
+    total_commitment: '$1,000,000';
+    address: '123 Main St, New York, NY 10001';
+  };
+  metadata: {
+    bucket: 'my-documents-bucket';
+    key: 'subscription-doc.pdf';
+    contentType: 'application/pdf';
+    modelId: 'global.anthropic.claude-sonnet-4-20250514-v1:0';
+  };
 }
 
 //Document type in Demo site
@@ -54,7 +81,6 @@ export interface Document {
     };
   };
 }
-
 export interface StoredDocument {
   name: string; // Display name of the document
   type: 'pending' | 'subscription' | 'pcap' | 'other'; // Document category used to map to AI model parsing result

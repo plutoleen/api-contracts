@@ -15,42 +15,35 @@ export interface GeneralLedger {
   updatedAt: ISODateString; // When entry was last updated
 }
 
-//Chart of accounts entity in Eunomia
-export interface ChartOfAccounts {
-  //chart of accounts
-  id: UUID; // Unique account identifier
-  name: string; // Account name
-  description: string; // Detailed account description
-  type: 'Asset' | 'Revenue' | 'Liability' | 'Equity' | 'Expense'; // Account category type
-  createdAt: ISODateString; // When account was created
-  updatedAt: ISODateString; // When account was last updated
+export interface EunomiaLedgerEntryResponse {
+  id: string; // Ledger entry ID
+  debitAccountId: string; // Debit account
+  creditAccountId: string; // Credit account
+  amount: string; // Transaction amount (Decimal as string)
+  description: string; // Transaction description
+  userId: string; // User who created the entry
+  contractId: string; // Associated contract ID
+  timestamp: ISODateString; // Transaction timestamp
 }
 
-export interface AccountBalance {
-  //running total of the account
-  accountId: UUID; // Account identifier, references accounts.id
-  balanceCents: number; // Current account balance in cents
-  lastUpdated: ISODateString; // When balance was last calculated
+export interface EunomiaDisburseRequest {
+  contractId: string; // Contract ID from Charon DB
+  intRateBps: number; // Interest rate in basis points
+  inceptFeeBps: number; // Inception fee in basis points
+  contractTerms: string; // JSON blob of contract terms
+  borrowerId: string; // Charon ID of the borrower
 }
 
-//example accounts
-const accounts = [
-  {
-    id: 'interest-receivables',
-    name: 'Interest Receivables',
-    description: 'Interest that Customers owe to Pluto',
-    type: 'Asset',
-  },
-  {
-    id: 'interest-earned',
-    name: 'Interest Earned',
-    description: 'Interest that Pluto has earned from Customers',
-    type: 'Revenue',
-  },
-  {
-    id: 'loans-outstanding',
-    name: 'Loans Outstanding',
-    description: 'Loans that Pluto has made to Customers',
-    type: 'Asset',
-  },
-];
+export interface EunomiaDisburse {
+  contractId: string; // Contract ID
+  loanContractId: string; // Internal loan contract ID
+  borrowerId: string; // Borrower ID
+  loanAmount: string; // Loan amount (Decimal as string)
+  baseRateBps: number; // Base SOFR rate in basis points
+  spreadBps: number; // Interest rate spread in basis points
+  totalRateBps: number; // Total interest rate in basis points
+  inceptFeeBps: number; // Inception fee in basis points
+  inceptFeeAmount: string; // Inception fee amount (Decimal as string)
+  disbursementDate: ISODateString; // When loan was disbursed
+  ledgerEntries: number; // Number of ledger entries created
+}
