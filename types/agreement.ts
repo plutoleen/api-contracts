@@ -6,8 +6,9 @@ export interface Agreement {
   fileRefId: UUID; // ID of the associated document from charon fileRefs.id
   envelopeId: string; //DocuSign envelope ID
   status: 'pending' | 'completed' | 'rejected'; //Status of the agreement
-  agreementType: 'loan-agreement' | 'pledged-agreement' | 'fund-consent-agreement';
+  agreementType: 'loan_agreement' | 'pledged_agreement' | 'fund_consent_agreement';
   signers: AgreementSigner[];
+  completedAt: ISODateString;
   createdAt: ISODateString;
   updatedAt: ISODateString;
 }

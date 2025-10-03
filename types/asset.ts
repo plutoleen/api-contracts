@@ -9,9 +9,9 @@ export interface LoanAsset {
   investorName: string; // Name of the investor
   identifier: string; // CUSIP/ISIN/internal identifier for the fund
   phone: string; // Phone number in international format
-  totalCommitmentCents: number; // Total capital committed by the investor
-  capitalCalledCents: number; // Capital called for payment by the fund
-  capitalInvestedCents: number; // Capital actually paid by the investor
+  totalCommitmentAmount: number; // Total capital committed by the investor
+  capitalCalledAmount: number; // Capital called for payment by the fund
+  capitalInvestedAmount: number; // Capital actually paid by the investor
   currency: Currency; // Currency of the asset commitment
   maxLVRPct: number; // Maximum loan-to-value ratio for this fund if match detected during parsing
   pledged: boolean; // Whether asset is pledged as collateral or not

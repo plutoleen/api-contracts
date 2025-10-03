@@ -43,11 +43,11 @@ export interface LoanApplicationSchema {
 export interface LoanOffer {
   //snapshot of the initial loan offer provided by the lender either through auto-approval or manual review
   id: UUID; //TODO: discuss if needed for compliance/auditing to keep track of loan offers made
-  maxLoanSizeCents: number; // Maximum loan amount offered
+  maxLoanAmount: number; // Maximum loan amount offered
   maxLvrPct: number; // Blended maximum loan-to-value ratio based on all assets pledged as collateral
   termLengthMonths: number; // Loan term in months
   inceptionFeePct: number; // upfront inception fee as a percentage of the loan amount
-  inceptionFeeAmountCents: number; // upfront inception fee amount in cents
+  inceptionFeeAmount: number; // upfront inception fee amount in cents
   interestRateSpreadBps: number; // lender’s margin/markup over the base rate in basis points for precision (e.g., 150 = 1.50%)
   interestPeriod: 'days' | 'weeks' | 'months' | 'quarters' | 'years'; // Period of loan interest for interest calculation in eunomia
   paymentStructure: PaymentStructure; // Payment structure
@@ -63,9 +63,9 @@ export interface LoanOffer {
 
 export interface LoanTerms {
   //Final loan terms accepted by the borrower
-  loanAmountCents: number; // Requested loan amount
+  loanAmount: number; // Requested loan amount
   loanCurrency: Currency;
-  assetTotalValueCents: number; // Total value of all assets pledged as collateral
+  assetTotalValue: number; // Total value of all assets pledged as collateral
   assetTotalCurrency: Currency; // Currency of the assets
   lvrPct: number; // Final loan-to-value ratio
   disbursementInstrumentId: UUID; // Taken from Vault id/token

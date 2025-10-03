@@ -26,8 +26,8 @@ export interface Loan {
   //   | 'restructured'; // Terms renegotiated (optional: often treated as new loan)
   name: string; // Name of the loan which includes the borrower's name
   currency: Currency;
-  balanceOpenCents: number; // Opening balance of the loan in cents
-  balanceCurrentCents: number; // Current balance of the loan in cents aka outstanding balance from Eunomia
+  balanceOpenAmount: number; // Opening balance of the loan in cents
+  balanceCurrentAmount: number; // Current balance of the loan in cents aka outstanding balance from Eunomia
   currentLvrPct: number; // Current Loan-to-value ratio from Eunomia
   // nextPaymentDueAt: ISODateString | null; // Next payment due date from Eunomia
   // lastPaymentAt: ISODateString; // Date of last payment from Eunomia
